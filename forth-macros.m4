@@ -70,31 +70,31 @@ define(`POPRSP', `set $1, [j]		; Pop from the return stack to $1
 # DEF* Functions
 DEFWORD(name, flags=0, label=name)
 define(`DEFWORD', `
-:name_`'NAME_LABEL($3,$1)
+:name_`'NAME_LABEL($2,$1)
 	dat link  		; Link to previous command.
-define(`link', name_`'NAME_LABEL($3,$1))dnl
-	dat eval($2+len($1))			; Flags have the higher 3 bits, then len gets the rest.
+define(`link', name_`'NAME_LABEL($2,$1))dnl
+	dat eval($3+len($1))			; Flags have the higher 3 bits, then len gets the rest.
 	PACKSTR($1)		; This is the packed version of "$1"
-:`'NAME_LABEL($3,$1)
+:`'NAME_LABEL($2,$1)
 	dat DOCOL`'dnl
 ')
 
 define(`DEFCODE', `
-:name_`'NAME_LABEL($3,$1)
+:name_`'NAME_LABEL($2,$1)
 	dat link		; Link to previous command.
-define(`link', name_`'NAME_LABEL($3,$1))dnl
-	dat eval($2+len($1))			; Flags have the higher 3 bits, then len gets the rest.
+define(`link', name_`'NAME_LABEL($2,$1))dnl
+	dat eval($3+len($1))			; Flags have the higher 3 bits, then len gets the rest.
 	PACKSTR($1)		; This is the packed version of "$1"
-:`'NAME_LABEL($3,$1)
-	dat code_`'NAME_LABEL($3,$1)
-:code_`'NAME_LABEL($3,$1)`'dnl
+:`'NAME_LABEL($2,$1)
+	dat code_`'NAME_LABEL($2,$1)
+:code_`'NAME_LABEL($2,$1)`'dnl
 ')
 
 define(`DEFVAR', `
 	DEFCODE($1, $2, $3)
-	set push, var_`'NAME_LABEL($3,$1)
-:var_'`NAME_LABEL($3,$1)
-	dat $4`'dnl
+	set push, var_`'NAME_LABEL($2,$1)
+:var_'`NAME_LABEL($2,$1)
+	dat ifelse($4,,0,$4)`'dnl
 ')
 
 divert(`0')dnl

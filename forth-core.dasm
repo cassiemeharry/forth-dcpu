@@ -43,7 +43,7 @@ include(`forth-macros.m4')
 	set push, y
 	set y, b
 
-	DEFCODE(`-rot',,nrot)	; Moves the top of stack behind the next two
+	DEFCODE(`-rot',nrot)	; Moves the top of stack behind the next two
 	set a, pop		; ( a b c -- c a b )
 	set b, pop
 	set push, y
@@ -51,12 +51,12 @@ include(`forth-macros.m4')
 	set y, a
 	NEXT
 
-	DEFCODE(2drop,,twodrop)	; Drop the top two items on the stack
+	DEFCODE(2drop,twodrop)	; Drop the top two items on the stack
 	add sp, 1		; ( a b -- )
 	set y, pop
 	NEXT
 
-	DEFCODE(2swap,,twoswap)	; Swap the top two pairs of elements
+	DEFCODE(2swap,twoswap)	; Swap the top two pairs of elements
 	set c, pop		; ( a b c d -- c d a b )
 	set b, pop
 	set a, pop
@@ -66,7 +66,7 @@ include(`forth-macros.m4')
 	set y, b
 	NEXT
 
-	DEFCODE(`?dup',,qdup)	; Duplicate the top of stack if it's not zero
+	DEFCODE(`?dup',qdup)	; Duplicate the top of stack if it's not zero
 	ife y, 0
 		set push, y
 	NEXT
@@ -75,39 +75,39 @@ include(`forth-macros.m4')
 ; By default, all operations are unsigned.
 ; Where the results differ, there should be a signed S-OP for every OP.
 
-	DEFCODE(`1+',,incr)	; Increment top of stack
+	DEFCODE(`1+',incr)	; Increment top of stack
 	add y, 1
 	NEXT
 
-	DEFCODE(`1-',,decr)	; Decrement top of stack
+	DEFCODE(`1-',decr)	; Decrement top of stack
 	sub a, 1
 	NEXT
 
-	DEFCODE(`+',,add)	; Addition
+	DEFCODE(`+',add)	; Addition
 	add y, pop
 	NEXT
 
-	DEFCODE(`-',,sub)	; Subtraction
+	DEFCODE(`-',sub)	; Subtraction
 	sub y, pop
 	NEXT
 
-	DEFCODE(`*',,mul)	; Multiplication (ignoring overflow)
+	DEFCODE(`*',mul)	; Multiplication (ignoring overflow)
 	mul y, pop
 	NEXT
 
-	DEFCODE(`/',,div)	; Division
+	DEFCODE(`/',div)	; Division
 	div y, pop
 	NEXT
 
-	DEFCODE(`s-/',,`s-div')	; Division (signed)
+	DEFCODE(`s-/',`s-div')	; Division (signed)
 	dvi y, pop
 	NEXT
 
-	DEFCODE(`%',,mod)	; Modulus
+	DEFCODE(`%',mod)	; Modulus
 	mod y, pop
 	NEXT
 
-	DEFCODE(`s-%',,`s-mod')	; Modulus (signed)
+	DEFCODE(`s-%',`s-mod')	; Modulus (signed)
 	mdi y, pop
 	NEXT
 
@@ -118,49 +118,49 @@ define(`FALSE',`0x0000')dnl
 ; A bool is `TRUE' = TRUE, `FALSE' = FALSE.
 ; Like the math ops, default is unsigned.
 
-	DEFCODE(`=',,equ)	; Equals
+	DEFCODE(`=',equ)	; Equals
 	set a, FALSE
 	ife y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`<>',,nequ)	; Not Equals
+	DEFCODE(`<>',nequ)	; Not Equals
 	set a, FALSE
 	ifn y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`<',,lt)	; Less Than
+	DEFCODE(`<',lt)		; Less Than
 	set a, FALSE
 	ifl y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`s-<',,`s-lt')	; Less Than (signed)
+	DEFCODE(`s-<',`s-lt')	; Less Than (signed)
 	set a, FALSE
 	ifu y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`>',,gt)	; Greater Than
+	DEFCODE(`>',gt)		; Greater Than
 	set a, FALSE
 	ifg y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`s->',,`s-gt')	; Greater Than (signed)
+	DEFCODE(`s->',`s-gt')	; Greater Than (signed)
 	set a, FALSE
 	ifa y, pop
 		set a, TRUE
 	set y, a
 	NEXT
 
-	DEFCODE(`<=',,le)	; Less Than or Equal
+	DEFCODE(`<=',le)	; Less Than or Equal
 	set a, TRUE
 	set b, pop
 	ifg b, y
@@ -168,7 +168,7 @@ define(`FALSE',`0x0000')dnl
 	set y, a
 	NEXT
 
-	DEFCODE(`s-<=',,`s-le')	; Less Than or Equal (signed)
+	DEFCODE(`s-<=',`s-le')	; Less Than or Equal (signed)
 	set a, TRUE
 	set b, pop
 	ifa b, y
@@ -176,7 +176,7 @@ define(`FALSE',`0x0000')dnl
 	set y, a
 	NEXT
 
-	DEFCODE(`>=',,ge)	; Greater Than or Equal
+	DEFCODE(`>=',ge)	; Greater Than or Equal
 	set a, TRUE
 	set b, pop
 	ifl b, y
@@ -184,7 +184,7 @@ define(`FALSE',`0x0000')dnl
 	set y, a
 	NEXT
 
-	DEFCODE(`s->=',,`s-ge')	; Greater Than or Equal (signed)
+	DEFCODE(`s->=',`s-ge')	; Greater Than or Equal (signed)
 	set a, TRUE
 	set b, pop
 	ifu b, y
