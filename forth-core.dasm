@@ -110,3 +110,84 @@ include(`forth-macros.m4')
 	DEFCODE(`s-%',,`s-mod')	; Modulus (signed)
 	mdi y, pop
 	NEXT
+
+define(`TRUE', `0xFFFF')dnl
+define(`FALSE',`0x0000')dnl
+; Comparisons
+; These are all ( a b -- bool ).
+; A bool is `TRUE' = TRUE, `FALSE' = FALSE.
+; Like the math ops, default is unsigned.
+
+	DEFCODE(`=',,equ)	; Equals
+	set a, FALSE
+	ife y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`<>',,nequ)	; Not Equals
+	set a, FALSE
+	ifn y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`<',,lt)	; Less Than
+	set a, FALSE
+	ifl y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`s-<',,`s-lt')	; Less Than (signed)
+	set a, FALSE
+	ifu y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`>',,gt)	; Greater Than
+	set a, FALSE
+	ifg y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`s->',,`s-gt')	; Greater Than (signed)
+	set a, FALSE
+	ifa y, pop
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`<=',,le)	; Less Than or Equal
+	set a, TRUE
+	set b, pop
+	ifg b, y
+		set a, FALSE
+	set y, a
+	NEXT
+
+	DEFCODE(`s-<=',,`s-le')	; Less Than or Equal (signed)
+	set a, TRUE
+	set b, pop
+	ifa b, y
+		set a, FALSE
+	set y, a
+	NEXT
+
+	DEFCODE(`>=',,ge)	; Greater Than or Equal
+	set a, TRUE
+	set b, pop
+	ifl b, y
+		set a, FALSE
+	set y, a
+	NEXT
+
+	DEFCODE(`s->=',,`s-ge')	; Greater Than or Equal (signed)
+	set a, TRUE
+	set b, pop
+	ifu b, y
+		set a, FALSE
+	set y, a
+	NEXT
