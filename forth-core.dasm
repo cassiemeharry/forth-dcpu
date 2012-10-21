@@ -23,6 +23,7 @@
 ;; (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 ;; SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+define(`__VERSION__', `1')
 include(`forth-macros.m4')
 
 ;; This file was created by following the jonesforth tutorial.
@@ -349,3 +350,21 @@ define(`FALSE',`0x0000')dnl
 	sub [y], pop
 	set y, pop
 	NEXT
+
+
+; Variables and constants
+
+	DEFVAR(state)	; Is the interpreter executing code (zero) or compiling a word (non-zero)
+	DEFVAR(latest)	; Pointer to the last defined word
+	DEFVAR(here)	; Pointer to the next free word of memory
+	DEFVAR(s0,sz)	; Pointer to the top of the parameter stack
+	DEFVAR(base,,,10)	; The current base for reading and printing numbers (2=binary, 16=hex, etc)
+
+	DEFCONST(version,,,__VERSION__)	; The current version of this Forth
+	DEFCONST(r0,rz,,return_stack_top)	; Pointer to the top of the return stack
+	DEFCONST(docol,__docol,,DOCOL)	; Pointer to DOCOL
+	DEFCONST(f_immed,__f_immed,,F_IMMED)	; The IMMEDIATE flag's actual value
+	DEFCONST(f_hidden,__f_hidden,,F_HIDDEN)	; The HIDDEN flag's actual value
+	DEFCONST(f_lenmask,__f_lenmask,,F_LENMASK)	; The length mask in the flags/length word
+
+:return_stack_top

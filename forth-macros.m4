@@ -93,8 +93,15 @@ define(`link', name_`'NAME_LABEL($2,$1))dnl
 define(`DEFVAR', `
 	DEFCODE($1, $2, $3)
 	set push, var_`'NAME_LABEL($2,$1)
-:var_'`NAME_LABEL($2,$1)
+	NEXT
+:var_`'NAME_LABEL($2,$1)
 	dat ifelse($4,,0,$4)`'dnl
+')
+
+define(`DEFCONST', `
+	DEFCODE($1, $2, $3)
+	set push, $4	; <-- Constant`'RQ`'s value
+	NEXT`'dnl
 ')
 
 divert(`0')dnl
