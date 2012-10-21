@@ -193,6 +193,7 @@ define(`FALSE',`0x0000')dnl
 	NEXT
 
 ; Comparisons with zero
+; These are all ( a -- bool )
 
 	DEFCODE(`0=',zequ)	; Is zero?
 	set a, FALSE
@@ -253,4 +254,39 @@ define(`FALSE',`0x0000')dnl
 	ifu y, 0
 		set a, FALSE
 	set y, a
+	NEXT
+
+; Bitwise operators
+
+	DEFCODE(and)	; Binary and (&)
+	and y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(or)	; Binary or (|)
+	bor y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(xor)	; Binary xor (^)
+	xor y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(lshr)	; Logical shift right
+	shr y, pop	; ( a b -- c )
+	NEXT
+
+
+	DEFCODE(ashr)	; Arithmetic shift right
+	asr y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(lshl)	; Logical shift left
+	shl y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(ashl)	; Arithmetic shift left (same as logical shift left)
+	shl y, pop	; ( a b -- c )
+	NEXT
+
+	DEFCODE(invert)	; Invert all bits
+	xor y, TRUE	; ( a -- b )
 	NEXT
