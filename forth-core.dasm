@@ -328,3 +328,24 @@ define(`FALSE',`0x0000')dnl
 	DEFCODE(lit)	; Literal values
 	set push, [i]	; Remember that i contains the next instruction.
 	add i, 1  	; Push its value to the stack, and skip over it.
+
+; Direct memory access
+
+	DEFCODE(`!',store)
+	set [y], pop
+	set y, pop
+	NEXT
+
+	DEFCODE(`@',fetch)
+	set y, [y]
+	NEXT
+
+	DEFCODE(`+!',addstore)
+	add [y], pop
+	set y, pop
+	NEXT
+
+	DEFCODE(`-!',substore)
+	sub [y], pop
+	set y, pop
+	NEXT
