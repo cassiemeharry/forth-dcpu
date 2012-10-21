@@ -1,6 +1,6 @@
-all: combined.dasm
-	dtasm -o forth-core.bin combined.dasm
-combined.dasm: forth-macros.m4 forth-core.dasm
-	m4 forth-macros.m4 forth-core.dasm > combined.dasm
+all: forth-core.o
+	dtld -l image -o forth-core.bin forth-core.o
+forth-core.o: forth-core.dasm forth-macros.m4
+	m4 forth-core.dasm | dtasm -i -o forth-core.o -
 clean:
-	rm -rf *.bin combined.dasm
+	rm -rf *.bin *.o
