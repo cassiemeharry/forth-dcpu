@@ -318,3 +318,13 @@ define(`FALSE',`0x0000')dnl
 	DEFCODE(invert)	; Invert all bits
 	xor y, TRUE	; ( a -- b )
 	NEXT
+
+; Special words
+
+	DEFCODE(exit)	; This goes at the end of all Forth level words,
+	POPRSP(i)	; like NEXT is to assembly level words.
+	NEXT
+
+	DEFCODE(lit)	; Literal values
+	set push, [i]	; Remember that i contains the next instruction.
+	add i, 1  	; Push its value to the stack, and skip over it.
