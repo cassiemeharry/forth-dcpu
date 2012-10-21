@@ -41,6 +41,15 @@ link is a pointer to the last Forth word defined. Starts at 0x0000.
 
 ----
 
+# Helper Functions
+define(`LQ',`changequote(<,>)`dnl'
+changequote`'')
+define(`RQ',`changequote(<,>)dnl`
+'changequote`'')
+define(`ASCIIHEX', `syscmd(`printf "%x" "'RQ`$1'RQ`"')')
+define(`PACKSTR', `ifelse($1,,,`ifelse(len($1),1,`dat 0x`'ASCIIHEX($1)`'00',`dat 0x`'ASCIIHEX(substr($1,0,1))`'ASCIIHEX(substr($1,1,1))
+	PACKSTR(substr($1,2))')')')
+define(`NAME_LABEL', `translit(translit(ifelse($1,,$2,$1),`-',`_'),`a-z',`A-Z')')
 # Variables
 define(`F_IMMED', `0x80')
 define(`F_HIDDEN', `0x20')
@@ -51,55 +60,41 @@ define(`link', `0')
 
 Sets up the CPU to interpret the next word.
 Expects I to be untouched, and overwrites Z.
-define(`NEXT', `
-	SET Z, [I]
-	ADD I, 1
-	SET PC, [Z]
-')
-define(`PUSHRSP', `
-	SUB J, 1
-	SET [J], $1
-')
-define(`POPRSP', `
-	SET $1, [J]
-	ADD J, 1
-')
+define(`NEXT', `set z, [i]		; Get address of next word
+	set pc, [z]		; Indirect threading!')
+define(`PUSHRSP', `sub j, 1		; Push $1 to the return stack
+	set [j], $1')
+define(`POPRSP', `set $1, [j]		; Pop from the return stack to $1
+	add j, 1')
 
 # DEF* Functions
 DEFWORD(name, flags=0, label=name)
 define(`DEFWORD', `
-define(`$name', $1)dnl
-define(`$flags', ifelse($2, `', 0, $2))dnl
-define(`label', ifelse($3, `', $3, $name))dnl
-:name_$3
-	dat link  	; Link to previous command.
-	define(`link', name_`'label)
-	dat eval($flags+len($name))	; Flags have the higher 3 bits, then len gets the rest.
-	dat "$name"	; The string name of the command.
-:`'label
-	dat DOCOL
+:name_`'NAME_LABEL($3,$1)
+	dat link  		; Link to previous command.
+define(`link', name_`'NAME_LABEL($3,$1))dnl
+	dat eval($2+len($1))			; Flags have the higher 3 bits, then len gets the rest.
+	PACKSTR($1)		; This is the packed version of "$1"
+:`'NAME_LABEL($3,$1)
+	dat DOCOL`'dnl
 ')
 
-define(`DEFCODE', `dnl
-:name_`'ifelse($3, `', $1, $3)
-	dat link	; Link to previous command.
-define(`link', name_`'ifelse($3, `', $1, $3))dnl
-	dat eval($2+len($1))		; Flags have the higher 3 bits, then len gets the rest.
-	dat "$1"	; The string name of the command
-:`'ifelse($3, `', $1, $3)
-	dat code_`'ifelse($3, `', $1, $3)
-:code_`'ifelse($3, `', $1, $3)`'dnl
+define(`DEFCODE', `
+:name_`'NAME_LABEL($3,$1)
+	dat link		; Link to previous command.
+define(`link', name_`'NAME_LABEL($3,$1))dnl
+	dat eval($2+len($1))			; Flags have the higher 3 bits, then len gets the rest.
+	PACKSTR($1)		; This is the packed version of "$1"
+:`'NAME_LABEL($3,$1)
+	dat code_`'NAME_LABEL($3,$1)
+:code_`'NAME_LABEL($3,$1)`'dnl
 ')
 
 define(`DEFVAR', `
-define(`$name', $1)dnl
-define(`$flags', ifelse($2, `', 0, $2))dnl
-define(`$label', ifdef($3, $3, $name))dnl
-define(`$initial', ifdef($4, $4, 0))dnl
-	DEFCODE($name, $flags, $label)
-	set push, var_$label
-:var_$label_
-	dat $initial
+	DEFCODE($1, $2, $3)
+	set push, var_`'NAME_LABEL($3,$1)
+:var_'`NAME_LABEL($3,$1)
+	dat $4`'dnl
 ')
 
 divert(`0')dnl
