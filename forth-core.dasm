@@ -70,3 +70,43 @@ include(`forth-macros.m4')
 	ife y, 0
 		set push, y
 	NEXT
+
+; Math operators
+; By default, all operations are unsigned.
+; Where the results differ, there should be a signed S-OP for every OP.
+
+	DEFCODE(`1+',,incr)	; Increment top of stack
+	add y, 1
+	NEXT
+
+	DEFCODE(`1-',,decr)	; Decrement top of stack
+	sub a, 1
+	NEXT
+
+	DEFCODE(`+',,add)	; Addition
+	add y, pop
+	NEXT
+
+	DEFCODE(`-',,sub)	; Subtraction
+	sub y, pop
+	NEXT
+
+	DEFCODE(`*',,mul)	; Multiplication (ignoring overflow)
+	mul y, pop
+	NEXT
+
+	DEFCODE(`/',,div)	; Division
+	div y, pop
+	NEXT
+
+	DEFCODE(`s-/',,`s-div')	; Division (signed)
+	dvi y, pop
+	NEXT
+
+	DEFCODE(`%',,mod)	; Modulus
+	mod y, pop
+	NEXT
+
+	DEFCODE(`s-%',,`s-mod')	; Modulus (signed)
+	mdi y, pop
+	NEXT
