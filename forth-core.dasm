@@ -13,4 +13,60 @@ include(`forth-macros.m4')
 	NEXT
 
 :_START
-	set pc, _START
+
+; Stack manipulation
+
+	DEFCODE(drop)		; Drop the top of stack
+	set y, pop		; ( a -- )
+	NEXT
+
+	DEFCODE(swap)		; Swap the top two elements of the stack
+	set a, y		; ( a b -- b a )
+	set y, pop
+	set push, a
+	NEXT
+
+	DEFCODE(dup)		; Duplicate the top of stack
+	set push, y		; ( a -- a a )
+	NEXT
+
+	DEFCODE(over)		; Duplicate the second to top element to the top of stack
+	set a, peek		; ( a b -- a b a )
+	set push, y
+	set y, a
+	NEXT
+
+	DEFCODE(rot)		; Move the third from top to the top
+	set a, pop		; ( a b c -- b c a )
+	set b, pop
+	set push, a
+	set push, y
+	set y, b
+
+	DEFCODE(`-rot',,nrot)	; Moves the top of stack behind the next two
+	set a, pop		; ( a b c -- c a b )
+	set b, pop
+	set push, y
+	set push, b
+	set y, a
+	NEXT
+
+	DEFCODE(2drop,,twodrop)	; Drop the top two items on the stack
+	add sp, 1		; ( a b -- )
+	set y, pop
+	NEXT
+
+	DEFCODE(2swap,,twoswap)	; Swap the top two pairs of elements
+	set c, pop		; ( a b c d -- c d a b )
+	set b, pop
+	set a, pop
+	set push, c
+	set push, y
+	set push, a
+	set y, b
+	NEXT
+
+	DEFCODE(`?dup',,qdup)	; Duplicate the top of stack if it's not zero
+	ife y, 0
+		set push, y
+	NEXT
