@@ -191,3 +191,66 @@ define(`FALSE',`0x0000')dnl
 		set a, FALSE
 	set y, a
 	NEXT
+
+; Comparisons with zero
+
+	DEFCODE(`0=',zequ)	; Is zero?
+	set a, FALSE
+	ife y, 0
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`0<>',znequ)	; Is not zero?
+	set a, FALSE
+	ifn y, 0
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`0<',zlt)	; Less Than zero?
+	set y, FALSE		; Really only makes sense as signed.
+	NEXT
+
+	DEFCODE(`s-0<',`s-zlt')	; Less Than zero? (signed)
+	set a, FALSE
+	ifu y, 0
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`0>',zgt)	; Greater Than zero?
+	set y, TRUE		; Again, only makes sense as signed.
+	NEXT
+
+	DEFCODE(`s-0>',`s-zgt')	; Greater Than zero? (signed)
+	set a, FALSE
+	ifa y, 0
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`0<=',zle)	; Less Than or Equal to zero?
+	set a, FALSE
+	ife y, 0
+		set a, TRUE
+	set y, a
+	NEXT
+
+	DEFCODE(`s-0<=',`s-zle')	; Less Than or Equal to zero? (signed)
+	set a, TRUE
+	ifa y, 0
+		set a, FALSE
+	set y, a
+	NEXT
+
+	DEFCODE(`0>=',zge)	; Greater Than or Equal to zero?
+	set y, TRUE
+	NEXT
+
+	DEFCODE(`s-0>=',`s-zge')	; Greater Than or Equal to zero? (signed)
+	set a, TRUE
+	ifu y, 0
+		set a, FALSE
+	set y, a
+	NEXT
