@@ -467,3 +467,21 @@ define(`FALSE',`0x0000')dnl
 :panic_message_crash
 	set pc, panic_message_crash
 
+; Basic I/O
+
+	DEFCODE(key)	; Reads the next byte and pushes it to the stack
+	ife var_KEYBOARD, 0xFFFF    ; Keyboard not found
+		set pc, key_crash_no_input     ; Usually means hardware has not been scanned for, just crash :(
+:key_input_loop
+	hwi [var_KEYBOARD]	; Read key input into register C
+	ife c, 0
+		set pc, key_input_loop	; Keep polling the keyboard until input
+	set push, y
+	set y, c
+	NEXT
+:key_crash_no_input
+	set push, key_crash_no_input_msg
+	set push, 27
+	set pc, code_PANIC
+:key_crash_no_input_msg
+	PACKSTR(`ERROR: No keyboard detected')
