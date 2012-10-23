@@ -47,8 +47,8 @@ changequote`'')
 define(`RQ',`changequote(<,>)dnl`
 'changequote`'')
 define(`ASCIIHEX', `syscmd(`printf "%x" "'RQ`$1'RQ`"')')
-define(`PACKSTR', `ifelse($1,,,`ifelse(len($1),1,`dat 0x`'ASCIIHEX($1)`'00',`dat 0x`'ASCIIHEX(substr($1,0,1))`'ASCIIHEX(substr($1,1,1))
-	PACKSTR(substr($1,2))')')')
+define(`PACKSTR', `ifelse($1,,,`ifelse(len($1),1,`dat 0x`'ASCIIHEX(`$1')`'00',`dat 0x`'ASCIIHEX(substr(`$1',0,1))`'ASCIIHEX(substr(`$1',1,1))
+	PACKSTR(substr(`$1',2))')')')
 define(`NAME_LABEL', `translit(translit(ifelse($1,,$2,$1),`-',`_'),`a-z',`A-Z')')
 # Variables
 define(`F_IMMED', `0x80')
