@@ -359,9 +359,10 @@ define(`FALSE',`0x0000')dnl
 	DEFVAR(here)	; Pointer to the next free word of memory
 	DEFVAR(s0,sz)	; Pointer to the top of the parameter stack
 	DEFVAR(base,,,10)	; The current base for reading and printing numbers (2=binary, 16=hex, etc)
+	DEFVAR(keyboard,,,0xFFFF)	; The identifier for the keyboard
 
 	DEFCONST(version,,,__VERSION__)	; The current version of this Forth
-	DEFCONST(r0,rz,,return_stack_top)	; Pointer to the top of the return stack
+	DEFCONST(r0,rz,,0xFFFF-0x100)	; Pointer to the top of the return stack
 	DEFCONST(docol,__docol,,DOCOL)	; Pointer to DOCOL
 	DEFCONST(f_immed,__f_immed,,F_IMMED)	; The IMMEDIATE flag's actual value
 	DEFCONST(f_hidden,__f_hidden,,F_HIDDEN)	; The HIDDEN flag's actual value
@@ -390,4 +391,45 @@ define(`FALSE',`0x0000')dnl
 	set y, pop
 	NEXT
 
-:return_stack_top
+; Hardware
+; There's a bit of a register sqeeze to deal with when querying for hardware.
+; The HWQ instruction sets registers A, B, C, X, and Y.
+; Register Y (top of stack) must be saved, and the other registers, Z, I, and J,
+; are all in use by the Forth VM, meaning a lot of shuffling has to happen.
+
+	DEFCODE(`hw-scan-id')	; Look for a particular hardware device by id
+	set a, y		; ( id-high id-low -- device-idx )
+	set b, pop		; device-idx is 0xFFFF if not found
+	set push, i	; Save the interpreter's state on the stack
+	set push, j	; so we can re-use these registers.
+	set push, z
+	set push, b	; Save the device id back on the stack
+	set push, a
+			; At this point, all registers are clear to use.
+			; Stack looks like this:
+			; ( I J Z id-high id-low )
+			; Y is safe to overwrite, as it started holding id-low,
+			;   which is now on the stack.
+			; A, B, C, and X are by default safe to overwrite.
+			; Now we can scan for hardware
+	hwn y		; Get a count of attached devices
+:hw_scan_id_loop
+	hwq y		; Scan hardware into A, B, C, and X
+	ifn peek, a	; We really only care about A and B
+		set pc, hw_scan_id_fail
+	ifn pick 1, b
+		set pc, hw_scan_id_fail
+:hw_scan_id_found	; It's a match!
+	set pc, hw_scan_id_cleanup
+:hw_scan_id_fail
+	sub y, 1
+	ife y, 0xFFFF
+		set pc, hw_scan_id_cleanup
+	set pc, hw_scan_id_loop
+:hw_scan_id_cleanup	; Restore all the registers
+	set a, pop	; ( I J Z id-high id-low )
+	set a, pop	; device-idx is in y, just as it should be
+	set z, pop	; Don't care about the id words any more
+	set j, pop
+	set i, pop
+	NEXT
