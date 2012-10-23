@@ -323,7 +323,7 @@ define(`FALSE',`0x0000')dnl
 ; Special words
 
 	DEFCODE(exit)	; This goes at the end of all Forth level words,
-	POPRSP(i)	; like NEXT is to assembly level words.
+	POPRSP(i)	; like `NEXT' is to assembly level words.
 	NEXT
 
 	DEFCODE(lit)	; Literal values
