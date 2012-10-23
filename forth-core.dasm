@@ -360,6 +360,8 @@ define(`FALSE',`0x0000')dnl
 	DEFVAR(s0,sz)	; Pointer to the top of the parameter stack
 	DEFVAR(base,,,10)	; The current base for reading and printing numbers (2=binary, 16=hex, etc)
 	DEFVAR(keyboard,,,0xFFFF)	; The identifier for the keyboard
+	DEFVAR(monitor,,,0xFFFF)	; The identifier for the monitor
+	DEFVAR(`monitor-base',,,0x8000)	; The base location for the monitor
 
 	DEFCONST(version,,,__VERSION__)	; The current version of this Forth
 	DEFCONST(r0,rz,,0xFFFF-0x100)	; Pointer to the top of the return stack
@@ -433,3 +435,35 @@ define(`FALSE',`0x0000')dnl
 	set j, pop
 	set i, pop
 	NEXT
+
+; Error messages
+
+	DEFCODE(panic)			; Dump a message to the screen
+	set a, pop			; and then crash, hanging forever :(
+	set b, pop			; ( address length -- *no-return* )
+	set x, [var_MONITOR_BASE]	; Register usage: a = lenth, b = address+a/2, x=MONITOR_BASE+a
+	add x, a			;   c = current character (cleaned), i = odd flag
+	div a, 2
+	add b, a
+	set i, 0
+	ife [var_MONITOR], 0xFFFF	; All hope is lost, no video connected to show panic message
+		set pc, panic_message_crash
+:panic_message_loop
+	ife a, 0	; End of message
+		set pc, panic_message_crash
+	set c, [b]  	; Currently, c is packed with two bytes
+	ife i, 0	; If even, skip odd handling
+		set pc, panic_message_even
+	shr c, 8    	; Clear out the odd flag
+:panic_message_even
+	and c, 0x7f
+	set [x], c	; Show the now cleaned character on screen
+	sub a, 1
+	sub x, 1
+	add b, 2
+	add [var_MONITOR_BASE], 1
+	xor i, 1	; Toggle odd flag
+	set pc, panic_message_loop
+:panic_message_crash
+	set pc, panic_message_crash
+
