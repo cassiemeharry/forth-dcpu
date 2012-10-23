@@ -367,4 +367,27 @@ define(`FALSE',`0x0000')dnl
 	DEFCONST(f_hidden,__f_hidden,,F_HIDDEN)	; The HIDDEN flag's actual value
 	DEFCONST(f_lenmask,__f_lenmask,,F_LENMASK)	; The length mask in the flags/length word
 
+
+; Return stack -- [j] is the top of the return stack
+
+	DEFCODE(`>r',tor)	; Add item to return stack
+	PUSHRSP(y)		; ( r -- )
+	set y, pop
+	NEXT
+
+	DEFCODE(`r>',fromr)	; Remove item from return stack
+	set push, y		; ( -- r )
+	POPRSP(y)
+	NEXT
+
+	DEFCODE(`rsp@',rspfetch)	; Copy top of return stack
+	set push, y			; ( -- r )
+	set y, [j]
+	NEXT
+
+	DEFCODE(`rsp!',rspstore)	; Overwrite top of return stack
+	set [j], y			; ( r -- )
+	set y, pop
+	NEXT
+
 :return_stack_top
