@@ -485,3 +485,44 @@ define(`FALSE',`0x0000')dnl
 	set pc, code_PANIC
 :key_crash_no_input_msg
 	PACKSTR(`ERROR: No keyboard detected')
+
+	DEFCODE(emit)	; Writes a character to the screen
+	set a, [var_MONITOR_BASE]	; ( char -- )
+	add a, [_emit_monitor_offset]
+	ife [_emit_monitor_offset], 32*16	; Writing past the end of the screen, scroll up
+		jsr monitor_scroll_line
+	set [a], y
+	set y, pop
+	NEXT
+:_emit_monitor_offset
+	dat 0
+:monitor_scroll_line
+	set push, a	; Copy all cells of video memory back 32 (0x20) words.
+	set push, b	; Save the context of the registers we'll be clobbering.
+	set push, c
+
+	set a, [var_MONITOR_BASE]
+	set b, 32*11	; Don't run the loop on the last line, we clear that one specially
+	set c, a
+	add c, 32
+:monitor_scroll_line_char_loop
+	set [a], [c]	; Copy the char 32 words ahead (directly below it)
+	sub b, 1
+	add a, 1
+	add c, 1
+	ifn b, 0
+		set pc, monitor_scroll_line_char_loop
+:monitor_scroll_line_last
+	set b, 32
+:monitor_scroll_line_last_loop
+	set [a], 0	; Blank out the last line
+	sub b, 1
+	add a, 1
+	ifn b, 0
+		set pc, monitor_scroll_line_last_loop
+:monitor_scroll_line_cleanup
+	sub [_emit_monitor_offset], 32
+	set c, pop	; Restore context
+	set b, pop
+	set a, pop
+	set pc, pop	; Come back from JSR
