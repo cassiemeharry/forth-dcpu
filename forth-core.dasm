@@ -472,13 +472,17 @@ define(`FALSE',`0x0000')dnl
 	DEFCODE(key)	; Reads the next byte and pushes it to the stack
 	ife var_KEYBOARD, 0xFFFF    ; Keyboard not found
 		set pc, key_crash_no_input     ; Usually means hardware has not been scanned for, just crash :(
+	jsr key_input_loop
+	set push, y
+	set y, a
+	NEXT
+:key_input
 :key_input_loop
 	hwi [var_KEYBOARD]	; Read key input into register C
 	ife c, 0
 		set pc, key_input_loop	; Keep polling the keyboard until input
-	set push, y
-	set y, c
-	NEXT
+	set a, c
+	set pc, pop
 :key_crash_no_input
 	set push, key_crash_no_input_msg
 	set push, 27
