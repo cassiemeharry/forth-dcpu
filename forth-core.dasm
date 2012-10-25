@@ -490,6 +490,39 @@ define(`FALSE',`0x0000')dnl
 :key_crash_no_input_msg
 	PACKSTR(`ERROR: No keyboard detected')
 
+	DEFCODE(word)	; Read a single word of input
+	set push, y	; ( -- address length )
+	jsr word_main
+	set push, a
+	set y, b
+	NEXT
+:word_main
+	jsr key_input	; Leaves character in A
+	ife a, 0x5c	; Backslash character, a line comment
+		set pc, word_skip_to_eol
+	ife a, 0x20	; A space, keep looking for the start of a word
+		set pc, word_main
+	set b, word_buffer	; B will be the address,
+	set c, word_buffer	; and C the length.
+	sub c, 1
+:word_copy_char
+	add c, 1
+	set [c], a
+	jsr key_input
+	ifn a, 0x20	; If not a blank, keep recording letters
+		set pc, word_copy_char
+	set a, b
+	set b, c
+	set pc, pop
+:word_skip_to_eol
+	jsr key_input	; Leaves character in A
+	ifn a, 0x11	; If not a newline, keep looking
+		set pc, word_skip_to_eol
+	set pc, word_main
+:word_buffer		; Two 16 word boundries
+	.BOUNDARY
+	.BOUNDARY
+
 	DEFCODE(emit)	; Writes a character to the screen
 	set a, [var_MONITOR_BASE]	; ( char -- )
 	add a, [_emit_monitor_offset]
