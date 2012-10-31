@@ -33,7 +33,7 @@ include(`forth-macros.m4')
 ;        BEFORE                AFTER
 ; ( bottom middle top -- bottom middle top )
 
-	set pc, _START
+	set pc, _start
 
 :DOCOL
 	PUSHRSP(i)
@@ -41,7 +41,13 @@ include(`forth-macros.m4')
 	set i, z		; Save in i to prepare for NEXT
 	NEXT
 
-:_START
+:_start
+	set [var_SZ], sp	; Save the current TOS as absolute TOS
+	set j, [var_RZ]		; Reset the return stack
+	set i, cold_start	; Initalize the interpreter
+	NEXT			; Run the interpreter!
+:cold_start
+	dat QUIT
 
 ; Stack manipulation
 
@@ -357,14 +363,14 @@ define(`FALSE',`0x0000')dnl
 	DEFVAR(state)	; Is the interpreter executing code (zero) or compiling a word (non-zero)
 	DEFVAR(latest)	; Pointer to the last defined word
 	DEFVAR(here)	; Pointer to the next free word of memory
-	DEFVAR(s0,sz)	; Pointer to the top of the parameter stack
+	DEFVAR(s0,sz,,SPTOP)	; Pointer to the top of the parameter stack
+	DEFVAR(r0,rz,,RSPTOP)	; Pointer to the top of the return stack
 	DEFVAR(base,,,10)	; The current base for reading and printing numbers (2=binary, 16=hex, etc)
 	DEFVAR(keyboard,,,0xFFFF)	; The identifier for the keyboard
 	DEFVAR(monitor,,,0xFFFF)	; The identifier for the monitor
 	DEFVAR(`monitor-base',,,0x8000)	; The base location for the monitor
 
 	DEFCONST(version,,,__VERSION__)	; The current version of this Forth
-	DEFCONST(r0,rz,,0xFFFF-0x100)	; Pointer to the top of the return stack
 	DEFCONST(docol,__docol,,DOCOL)	; Pointer to DOCOL
 	DEFCONST(f_immed,__f_immed,,F_IMMED)	; The IMMEDIATE flag's actual value
 	DEFCONST(f_hidden,__f_hidden,,F_HIDDEN)	; The HIDDEN flag's actual value

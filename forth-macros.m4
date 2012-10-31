@@ -55,6 +55,8 @@ define(`F_IMMED', `0x80')
 define(`F_HIDDEN', `0x20')
 define(`F_LENMASK', `0x1F')
 define(`link', `0')
+define(`SPTOP',0)
+define(`RSPTOP',-0x100)
 
 # Pseudo-instructions
 
