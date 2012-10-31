@@ -328,7 +328,7 @@ define(`FALSE',`0x0000')dnl
 
 	DEFCODE(lit)	; Literal values
 	set push, [i]	; Remember that i contains the next instruction.
-	add i, 1  	; Push its value to the stack, and skip over it.
+	add i, 1	; Push its value to the stack, and skip over it.
 
 ; Direct memory access
 
@@ -451,10 +451,10 @@ define(`FALSE',`0x0000')dnl
 :panic_message_loop
 	ife a, 0	; End of message
 		set pc, panic_message_crash
-	set c, [b]  	; Currently, c is packed with two bytes
+	set c, [b]	; Currently, c is packed with two bytes
 	ife i, 0	; If even, skip odd handling
 		set pc, panic_message_even
-	shr c, 8    	; Clear out the odd flag
+	shr c, 8	; Clear out the odd flag
 :panic_message_even
 	and c, 0x7f
 	set [x], c	; Show the now cleaned character on screen
@@ -470,8 +470,8 @@ define(`FALSE',`0x0000')dnl
 ; Basic I/O
 
 	DEFCODE(key)	; Reads the next byte and pushes it to the stack
-	ife var_KEYBOARD, 0xFFFF    ; Keyboard not found
-		set pc, key_crash_no_input     ; Usually means hardware has not been scanned for, just crash :(
+	ife var_KEYBOARD, 0xFFFF		; Keyboard not found
+		set pc, key_crash_no_input	; Usually means hardware has not been scanned for, just crash :(
 	jsr key_input_loop
 	set push, y
 	set y, a
