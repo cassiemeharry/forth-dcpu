@@ -728,3 +728,80 @@ define(`FALSE',`0x0000')dnl
 	dat TCFA
 	dat INCR
 	dat EXIT
+
+; Compilation
+
+	DEFCODE(create)		; Create the dictionary header from a string
+	set a, pop		; ( str-addr str-len -- )
+	set b, [var_HERE]	; A = str-addr, Y = str-len, B = HERE pointer,
+	set c, [var_LATEST]	; C = LATEST pointer
+	set [b], c		; Store link to previous word
+	set [var_LATEST], b	; Update LATEST
+	add b, 1		; Move to strlen
+	set [b], y		; Store strlen
+	add b, 1		; Move to beginning of string
+:create_loop
+	ife y, 0
+		set pc, create_end
+	set [b], [a]		; Copy a character
+	add b, 1		; Move along
+	add a, 1
+	sub y, 1
+	set pc, create_loop
+:create_end
+	set [var_HERE], b
+	set y, pop
+	NEXT
+
+	DEFCODE(```,''',comma)	; Add an address to the base of user memory
+	set a, y		; ( addr -- )
+	jsr comma
+	set y, pop
+	NEXT
+:comma
+	set b, [var_HERE]
+	set [b], a
+	add [var_HERE], 1
+	set pc, pop
+
+	DEFCODE(`[',lbrac,F_IMMED)	; Switch to immediate mode
+	set [var_STATE], 0
+	NEXT
+
+	DEFCODE(`]',rbrac)	; Switch to compile mode
+	set [var_STATE], 1
+	NEXT
+
+	DEFWORD(`:',colon)
+	dat WORD
+	dat CREATE
+	dat LIT			; The "LIT word COMMA" pattern appends word to user memory
+	dat DOCOL
+	dat COMMA
+	dat LATEST
+	dat FETCH
+	dat HIDDEN
+	dat RBRAC		; Go to compile mode
+	dat EXIT		; Return
+
+	DEFWORD(`;',semicolon,F_IMMED)
+	dat LIT
+	dat EXIT
+	dat COMMA
+	dat LATEST		; Make the word hidden
+	dat FETCH
+	dat HIDDEN
+	dat LBRAC		; Go back to immediate mode
+	dat EXIT		; Return
+
+	DEFCODE(hidden)		; Toggle the hidden bit of a dictionary entry
+	add y, 1
+	xor [y], F_HIDDEN	; Toggle the flag
+	set y, pop
+	NEXT
+
+	DEFWORD(hide)
+	dat WORD
+	dat FIND
+	dat HIDDEN
+	dat EXIT
