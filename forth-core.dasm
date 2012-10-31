@@ -666,3 +666,46 @@ define(`FALSE',`0x0000')dnl
 	set b, pop
 	set a, pop
 	set pc, pop	; Come back from JSR
+
+; Dictionary handling
+
+	DEFCODE(find)	; Find a word in the dictionary
+	set b, y	; ( str-addr str-len -- entry-addr )
+	set a, pop
+	jsr find
+	set y, a
+	NEXT
+:find			; A = string address, B = string length
+	set push, y	; Returns address to entry in A
+	set c, [var_LATEST]
+:find_loop
+	ife c, 0
+		set pc, find_end
+	set y, eval(F_HIDDEN | F_LENMASK)	; y = c->len & (`F_HIDDEN' | `F_LENMASK')
+	add c, 1
+	and y, [c]
+	sub c, 1
+	ifn y, b
+		set pc, find_badmatch
+	xor x, x
+:find_inner_loop
+	ife x, b
+		set pc, find_end
+	set y, c
+	add y, 2	; First char in current name
+	add y, x	; Move forward x chars
+	add a, x	;   for both current and goal
+	set y, [y]
+	xor y, [a]	; Comparison
+	sub a, x	; Reset goal address
+	ifn y, 0
+		set pc, find_badmatch
+	add x, 1
+	set pc, find_inner_loop
+:find_badmatch
+	set c, [c]
+	set pc, find_loop
+:find_end
+	set y, pop
+	set a, c
+	set pc, pop

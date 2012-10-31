@@ -74,7 +74,8 @@ define(`DEFWORD', `
 	dat link  		; Link to previous command.
 define(`link', name_`'NAME_LABEL($2,$1))dnl
 	dat eval($3+len($1))			; Flags have the higher 3 bits, then len gets the rest.
-	PACKSTR($1)		; This is the packed version of "$1"
+	dat "$1"
+dnl PACKSTR($1)		; This is the packed version of "$1"
 :`'NAME_LABEL($2,$1)
 	dat DOCOL`'dnl
 ')
@@ -84,7 +85,8 @@ define(`DEFCODE', `
 	dat link		; Link to previous command.
 define(`link', name_`'NAME_LABEL($2,$1))dnl
 	dat eval($3+len($1))			; Flags have the higher 3 bits, then len gets the rest.
-	PACKSTR($1)		; This is the packed version of "$1"
+	dat "$1"
+dnl PACKSTR($1)		; This is the packed version of "$1"
 :`'NAME_LABEL($2,$1)
 	dat code_`'NAME_LABEL($2,$1)
 :code_`'NAME_LABEL($2,$1)`'dnl
