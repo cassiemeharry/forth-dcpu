@@ -710,3 +710,21 @@ define(`FALSE',`0x0000')dnl
 	set y, pop
 	set a, c
 	set pc, pop
+
+	DEFCODE(`>cfa', `tcfa')	; Get pointer to code word of word at address
+	set a, y		; ( word-addr -- cf-addr )
+	jsr to_cfa
+	set y, a
+	NEXT
+:to_cfa				; Takes a word address in A, returns the codefield in A
+	add a, 1		; Skip the prev pointer
+	set b, F_LENMASK	; Only skip the length, not the flags
+	and b, [a]		; Get the length of the word
+	add a, b		; Skip that many characters
+	add a, 1		; Move past the word to the code field
+	set pc, pop		; Return
+
+	DEFWORD(`>dfa', `tdfa')	; Get the pointer to the first "real" word of the word at address
+	dat TCFA
+	dat INCR
+	dat EXIT
