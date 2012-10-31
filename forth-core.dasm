@@ -805,3 +805,71 @@ define(`FALSE',`0x0000')dnl
 	dat FIND
 	dat HIDDEN
 	dat EXIT
+
+; Fundamental branching
+
+	DEFCODE(branch)		; Takes an offset and adds it to the instruction pointer
+	add i, [i]
+	NEXT
+
+	DEFCODE(`0branch',zbranch)	; Same thing, but skip the offset if TOS == 0
+	set a, y
+	set y, pop
+	ife a, 0			; If TOS is zero, branch
+		set pc, code_BRANCH
+	add i, 1			; Otherwise, skip the offset
+	NEXT
+
+; REPL
+
+	DEFWORD(quit)		; This is actually what starts the REPL
+	dat RZ
+	dat RSPSTORE		; Clear the return stack
+	dat INTERPRET		; Interpret the next word
+	dat BRANCH		; Jump back to interpret the next word
+	dat -2
+
+	DEFCODE(interpret)	; This is the higher level interpreter
+	jsr word_main		; Leaves address in A and length in B
+	jsr find		; Dictionary lookup, leaves address in A (0 if not found)
+	ife a, 0
+		set pc, interpret_litnum
+	set push, a		; Save A
+	jsr to_cfa		; Get codeword address in A
+	set c, a		; Save it in C
+	set a, pop		; Restore A
+	set b, a
+	add b, 1
+	set b, [b]
+	set [interpret_is_lit], 0	; Reset literal flag
+	ifb b, F_IMMED		; If the immediate bit is set, go straight to exec
+		set pc, interpret_exec
+	set pc, interpret_check_for_compile
+:interpret_litnum
+	add [interpret_is_lit], 1
+	jsr number		; Leaves number in A, C > 0 if error
+	set b, a
+	set a, LIT
+:interpret_check_for_compile
+	ife [var_STATE], 0
+		set pc, interpret_exec
+	jsr comma
+	ife [interpret_is_lit], 0	; Not a literal
+		set pc, interpret_nolit
+	set a, b		; LIT has already been COMMA'd
+	jsr comma		; so it's COMMA the number
+:interpret_nolit
+	NEXT
+
+:interpret_exec
+	ifn [interpret_is_lit], 0
+		set pc, interpret_exec_number
+	set a, [a]
+	set pc, [a]		; Double indirection, doesn't return
+:interpret_exec_number
+	set push, y
+	set y, a
+	NEXT
+:interpret_is_lit
+	dat 0
+; Skip parse error messages for now
