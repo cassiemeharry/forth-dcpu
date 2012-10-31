@@ -523,6 +523,109 @@ define(`FALSE',`0x0000')dnl
 	.BOUNDARY
 	.BOUNDARY
 
+	DEFCODE(number)	; atoi
+	set a, pop	; ( str-addr str-len -- n errors )
+	set b, y
+	jsr number
+	set push, a
+	set y, b
+:number			; A = address to string, B = length of string
+	set push, i
+	set push, j
+	set push, y
+	set push, z	; C, I, J, X, Y, and Z are safe to use
+	xor i, i	; I = loop index
+	xor x, x	; X = number parsed
+	xor y, y	; Y = errors
+	xor z, z	; Z = scratch
+			; C = current character
+:number_mainloop
+	set z, b
+	sub z, i
+	sub z, 1
+	add z, a
+	set c, [z]	; c = string[length-i-1]
+	set z, [var_BASE]
+	add i, 1
+	ifg i, b
+		set pc, number_end
+	sub i, 1
+	ifg c, 0x60
+		set pc, number_lowercase
+	ifg c, 0x40
+		set pc, number_uppercase
+	ifg c, 0x2F
+		set pc, number_numeral
+	ife c, 0x2D
+		set pc, number_minus
+	set pc, number_error
+:number_numeral
+	ifg c, 0x39
+		set pc, number_error
+	sub c, 0x30
+	add c, 1
+	ifg c, [var_BASE]
+		set pc, number_error
+	set pc, number_exp
+:number_lowercase
+	ifg c, 0x7A
+		set pc, number_error
+	sub c, 0x61
+	add c, 1
+	ifg c, [var_BASE]
+		set pc, number_error
+	set pc, number_exp
+:number_uppercase
+	ifg c, 0x5A
+		set pc, number_error
+	sub c, 0x41
+	add c, 1
+	ifg c, [var_BASE]
+		set pc, number_error
+	set pc, number_exp
+:number_minus
+	sub b, 1
+	ifn i, b
+		set pc, number_minus_error
+	mul x, -1
+	sub y, 1	; No need to jump, I think this is faster
+:number_minus_error
+	add b, 1	; Undo the damage caused a few lines above
+:number_error
+	add y, 1
+	set pc, number_loop_end
+:number_exp
+	sub c, 1
+	ife i, 0
+		set pc, number_good
+	set push, i
+	sub i, y
+:number_exp_loop
+	ife i, 0
+		set pc, number_exp_loop_end
+	set j, [var_BASE]
+	ife i, 1
+		set j, 1
+	mul z, j
+	sub i, 1
+	set pc, number_exp_loop
+:number_exp_loop_end
+	set i, pop
+	mul c, z
+:number_good
+	add x, c
+:number_loop_end
+	add i, 1
+	set pc, number_mainloop
+:number_end		; A = number parsed, B = count of error chars
+	set a, x
+	set b, y
+	set z, pop
+	set y, pop
+	set j, pop
+	set i, pop
+	set pc, pop	; Return from subroutine
+
 	DEFCODE(emit)	; Writes a character to the screen
 	set a, [var_MONITOR_BASE]	; ( char -- )
 	add a, [_emit_monitor_offset]
