@@ -529,6 +529,7 @@ define(`FALSE',`0x0000')dnl
 	jsr number
 	set push, a
 	set y, b
+	NEXT
 :number			; A = address to string, B = length of string
 	set push, i
 	set push, j
