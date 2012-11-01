@@ -63,6 +63,7 @@ define(`RSPTOP',-0x100)
 Sets up the CPU to interpret the next word.
 Expects I to be untouched, and overwrites Z.
 define(`NEXT', `set z, [i]		; Get address of next word
+	add i, 1		; Get the next address
 	set pc, [z]		; Indirect threading!')
 define(`PUSHRSP', `sub j, 1		; Push $1 to the return stack
 	set [j], $1')

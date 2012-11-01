@@ -38,10 +38,11 @@ include(`forth-macros.m4')
 :DOCOL
 	PUSHRSP(i)
 	add z, 1		; Move skip the DOCOL word
-	set i, z		; Save in i to prepare for NEXT
+	set i, z		; Save in i to prepare for `NEXT'
 	NEXT
 
 :_start
+	jsr init_hardware
 	set [var_SZ], sp	; Save the current TOS as absolute TOS
 	set j, [var_RZ]		; Reset the return stack
 	set i, cold_start	; Initalize the interpreter
@@ -362,7 +363,6 @@ define(`FALSE',`0x0000')dnl
 
 	DEFVAR(state)	; Is the interpreter executing code (zero) or compiling a word (non-zero)
 	DEFVAR(latest)	; Pointer to the last defined word
-	DEFVAR(here)	; Pointer to the next free word of memory
 	DEFVAR(s0,sz,,SPTOP)	; Pointer to the top of the parameter stack
 	DEFVAR(r0,rz,,RSPTOP)	; Pointer to the top of the return stack
 	DEFVAR(base,,,10)	; The current base for reading and printing numbers (2=binary, 16=hex, etc)
@@ -405,42 +405,73 @@ define(`FALSE',`0x0000')dnl
 ; Register Y (top of stack) must be saved, and the other registers, Z, I, and J,
 ; are all in use by the Forth VM, meaning a lot of shuffling has to happen.
 
-	DEFCODE(`hw-scan-id')	; Look for a particular hardware device by id
-	set a, y		; ( id-high id-low -- device-idx )
-	set b, pop		; device-idx is 0xFFFF if not found
-	set push, i	; Save the interpreter's state on the stack
-	set push, j	; so we can re-use these registers.
+; Since hotplugging hardware is not defined on the DCPU, this isn't a callable word.
+; Hardware info is stored similarly to the word dictionary, like so:
+;       ^
+; +-----|-----+------------+-----------+-------------+------------+---------+------+
+; | prev-link | hw-id-high | hw-id-low | man-id-high | man-id-low | version | slot |
+; +-----------+------------+-----------+-------------+------------+---------+------+
+; 
+; init_hardware sets up this dictionary and sets the assembly-level variable var_HW_LAST
+; Forth words shouldn't touch this directly.
+
+:var_HW_LAST
+	dat 0
+
+:init_hardware
+	set push, j
+	set push, i
 	set push, z
-	set push, b	; Save the device id back on the stack
-	set push, a
-			; At this point, all registers are clear to use.
-			; Stack looks like this:
-			; ( I J Z id-high id-low )
-			; Y is safe to overwrite, as it started holding id-low,
-			;   which is now on the stack.
-			; A, B, C, and X are by default safe to overwrite.
-			; Now we can scan for hardware
-	hwn y		; Get a count of attached devices
-:hw_scan_id_loop
-	hwq y		; Scan hardware into A, B, C, and X
-	ifn peek, a	; We really only care about A and B
-		set pc, hw_scan_id_fail
-	ifn pick 1, b
-		set pc, hw_scan_id_fail
-:hw_scan_id_found	; It's a match!
-	set pc, hw_scan_id_cleanup
-:hw_scan_id_fail
-	sub y, 1
-	ife y, 0xFFFF
-		set pc, hw_scan_id_cleanup
-	set pc, hw_scan_id_loop
-:hw_scan_id_cleanup	; Restore all the registers
-	set a, pop	; ( I J Z id-high id-low )
-	set a, pop	; device-idx is in y, just as it should be
-	set z, pop	; Don't care about the id words any more
-	set j, pop
+	set push, y		; All registers are clear to use
+	hwn i
+:init_hardware_loop
+	set z, [var_HERE]
+	hwq i
+
+	set [z], [var_HW_LAST]	; Set pointer to previous
+	set [var_HW_LAST], z	; Mark current as previous
+	add z, 1
+	set [z], b		; Set hw-id-high
+	add z, 1
+	set [z], a		; Set hw-id-low
+	add z, 1
+	set [z], y		; Set man-id-high
+	add z, 1
+	set [z], x		; Set man-id-low
+	add z, 1
+	set [z], c		; Set version
+	add z, 1
+	set [z], i		; Set hardware slot for later queries
+	add z, 1
+	set [var_HERE], z	; Set new start of free zone
+
+:init_hardware_try_kb
+	ifn b, 0x30CF
+		set pc, init_hardware_try_monitor
+	ifn a, 0x7406
+		set pc, init_hardware_try_monitor
+	ifn c, 1
+		set pc, init_hardware_try_monitor
+	set [var_KEYBOARD], i
+	set pc, init_hardware_loop_end
+:init_hardware_try_monitor
+	ifn b, 0x7349
+		set pc, init_hardware_loop_end
+	ifn a, 0xF615
+		set pc, init_hardware_loop_end
+	ifn c, 0x1802
+		set pc, init_hardware_loop_end
+	set [var_MONITOR], i
+:init_hardware_loop_end
+	sub i, 1
+	ifn i, 0
+		set pc, init_hardware_loop
+:init_hardware_cleanup
+	set y, pop
+	set z, pop
 	set i, pop
-	NEXT
+	set j, pop
+	set pc, pop		; Return
 
 ; Error messages
 
@@ -879,3 +910,9 @@ define(`FALSE',`0x0000')dnl
 :interpret_is_lit
 	dat 0
 ; Skip parse error messages for now
+
+	DEFVAR(here,,,0x800)	; Pointer to the next free word of memory
+	; HERE should be the last thing, as anything after will be overwritten
+	; by HW info and user words.
+	; The magic number 0x800 is the length of this binary, rounded up to the
+	; nearest 0x100. Adjust as necessary.
